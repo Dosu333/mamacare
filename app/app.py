@@ -43,8 +43,9 @@ def create_app():
         General chat API for web/mobile clients.
         """
         data = request.json
+        print('data: ', data)
         message = data.get("message", "").strip()
-        user_id = data.get("phone", "user_001")
+        user_id = data.get("user_id", "user_001")
 
         if not message:
             return jsonify({"error": "No message provided"}), 400
