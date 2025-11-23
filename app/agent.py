@@ -128,14 +128,15 @@ def get_response(prompt, retries=3, delay=2, user_id="user_001"):
     - You may chain multiple tools
     - Only respond to the user when finished calling tools for this turn
     - At the beginning of each conversation, ALWAYS call get_all_patients
-    and check if the user exists based on their phone number. if the user does
-    not exist, you MUST ask for the necessary details to create a new patient
-    record. If the user exists, you MUST use their patient ID for all
-    subsequent calls when needed. If the user does not exist, the user phone
-    number must not already exist in any patient record, if it does, do not
-    create the record. If the user's gender is male, do not create a patient
-    record and inform the user that this service is only for individuals who
-    can become pregnant.
+    and check if the user exists based on their phone number. If the user
+    exists, check if their gender is female to know if you can proceed. if the
+    user does not exist, you MUST ask for the necessary details to create a
+    new patient record. If the user exists, you MUST use their patient ID for
+    all subsequent calls when needed. If the user does not exist, the user's
+    phone number must not already exist in any patient record, if it does,
+    do not create the record. If the user's gender is male, do not create a
+    patient record and inform the user that this service is only for
+    individuals who can become pregnant.
 
     11. Tone and style:
     - Be warm, empathetic, and supportive
