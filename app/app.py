@@ -1,39 +1,62 @@
-from flask import Flask, request
+from flask import Flask, request, jsonify
 from twilio.twiml.messaging_response import MessagingResponse
-from utils.ai_engine import classify_intent
-from utils.parse_json import safe_parse_json
+from extensions import db
+from config import Config
+from agent import get_response
 
 
-app = Flask(__name__)
+def create_app():
+    app = Flask(__name__)
+    app.config.from_object(Config)
 
+    db.init_app(app)
 
-@app.route("/whatsapp", methods=["POST"])
-def whatsapp_reply():
-    incoming_msg = request.form.get("Body", "").strip()
-    resp = MessagingResponse()
-    msg = resp.message()
+    # Create database tables
+    with app.app_context():
+        db.create_all()
 
-    result = classify_intent(incoming_msg)
-    intent_data = safe_parse_json(result)
-    intent = intent_data.get("intent", "UNSURE")
+    # Define routes inside create_app
+    @app.route("/whatsapp", methods=["POST"])
+    def whatsapp_reply():
+        """
+        Receives WhatsApp messages via Twilio and returns AI responses.
+        """
+        incoming_msg = request.form.get("Body", "").strip()
+        user_phone = request.form.get("From", None)
+        user_id = user_phone.split(':')[-1] or "+2347056918098"
 
-    if intent == "STATUS":
-        msg.body("Here is your latest health update. (vitals & appointments placeholder)")
-    elif intent == "REPORT_SYMPTOM":
-        msg.body("Thank you for sharing. Can you tell me if you also have dizziness, swelling, or blurred vision?")
-    elif intent == "CYCLE_START":
-        msg.body("Got it. I’ve logged the start of your cycle and will track it for you.")
-    elif intent == "PREGNANCY_ANNOUNCE":
-        msg.body("Congratulations! I can start giving you weekly pregnancy tips. How many weeks along are you?")
-    elif intent == "REQUEST_REPORT":
-        msg.body("Sure, I can create a report for you and your doctor.")
-    elif intent == "SMALL_TALK":
-        msg.body("You’re welcome! How can I help you today?")
-    else:
-        msg.body("I’m here to support you. Can you tell me more about how you’re feeling today?")
+        print('phone: ', user_phone.split(':')[-1])
 
-    return str(resp)
+        # Get AI response
+        ai_reply = get_response(incoming_msg, user_id=user_id)
+
+        # Respond via Twilio
+        resp = MessagingResponse()
+        msg = resp.message()
+        msg.body(ai_reply)
+
+        return str(resp)
+
+    @app.route("/chat", methods=["POST"])
+    def chat_api():
+        """
+        General chat API for web/mobile clients.
+        """
+        data = request.json
+        message = data.get("message", "").strip()
+        user_id = data.get("phone", "user_001")
+
+        if not message:
+            return jsonify({"error": "No message provided"}), 400
+
+        # Get AI response
+        ai_reply = get_response(message, user_id=user_id)
+
+        return jsonify({"response": ai_reply})
+
+    return app
 
 
 if __name__ == "__main__":
+    app = create_app()
     app.run(debug=True)
