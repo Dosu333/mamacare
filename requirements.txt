@@ -1,5 +1,9 @@
 flask
+flask-jwt-extended
+flask-migrate
+flask-sqlalchemy
 google-genai
-twilio
+psycopg2-binary
 python-dotenv
 requests 
+twilio
