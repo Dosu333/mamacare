@@ -3,6 +3,7 @@ from twilio.twiml.messaging_response import MessagingResponse
 from extensions import db
 from config import Config
 from agent import get_response
+from models import User, Doctor
 
 
 def create_app():
@@ -15,7 +16,42 @@ def create_app():
     with app.app_context():
         db.create_all()
 
-    # Define routes inside create_app
+    @app.route('/seed-doctors')
+    def seed_doctors():
+        doctors = [
+            ("Dr. Amina Bello", "amina@hospital.com", "Obstetrics",
+                "Lagos Island Maternity", "+2348012345671"),
+            ("Dr. Kemi Johnson", "kemi@hospital.com", "Gynecology",
+                "First Women Clinic", "+2348012345672"),
+            ("Dr. Fatima Lawal", "fatima@hospital.com", "Reproductive Health",
+                "Abuja Specialist Hospital", "+2348012345673"),
+        ]
+
+        for name, email, specialty, facility, phone in doctors:
+            if User.query.filter_by(email=email).first():
+                continue
+
+            user = User(
+                email=email,
+                role="doctor",
+                full_name=name
+            )
+            user.set_password("password123")
+            db.session.add(user)
+            db.session.flush()
+
+            doctor = Doctor(
+                user_id=user.id,
+                specialty=specialty,
+                facility=facility,
+                phone=phone
+            )
+
+            db.session.add(doctor)
+
+        db.session.commit()
+        return {"message": "Doctors seeded"}
+
     @app.route("/whatsapp", methods=["POST"])
     def whatsapp_reply():
         """
