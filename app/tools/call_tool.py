@@ -12,7 +12,11 @@ from tools.observations import (
     symptoms as sym,
     cycle_start as cys,
     cycle_end as cye,
+    get_cycles as gc,
+    predict_cycle as pc,
 )
+from tools.doctors.get_doctors import get_doctors
+from tools.dorra_ai.emr import create_appointments_and_encounters_via_ai
 from google.genai import types
 
 
@@ -56,6 +60,19 @@ def call_function(function_call_part, verbose=True, user_id=None):
         result = cys.log_cycle_start(**function_call_part.args)
     elif function_call_part.name == "log_cycle_end":
         result = cye.log_cycle_end(**function_call_part.args)
+    elif function_call_part.name == "get_patient_cycles":
+        result = gc.get_patient_cycles(**function_call_part.args)
+    elif function_call_part.name == "predict_next_cycle_start":
+        result = pc.predict_next_cycle_start(**function_call_part.args)
+
+    # AI-powered EMR creation
+    elif function_call_part.name == "create_appointments_and_encounters_via_ai":
+        result = create_appointments_and_encounters_via_ai(
+                            **function_call_part.args)
+
+    # Doctors
+    elif function_call_part.name == "get_doctors":
+        result = get_doctors(**function_call_part.args)
 
     else:
         result = {"status": "failure", "message": "Function not found"}
