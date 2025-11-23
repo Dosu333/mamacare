@@ -25,10 +25,10 @@ def get_patient_record(patient_id: str):
         return {"error": str(e)}
 
 
-def get_all_patients(search=""):
+def get_all_patients():
     try:
         response = requests.get(
-            url=f"{BASE_URL}/patients?search={search}",
+            url=f"{BASE_URL}/patients",
             headers=HEADERS
         )
         return response.json()
@@ -53,15 +53,10 @@ schema_get_patient_record = types.FunctionDeclaration(
 
 schema_get_all_patients = types.FunctionDeclaration(
     name="get_all_patients",
-    description="Retrieve a list of patients. Optionally filter by a search term.",
+    description="Retrieve a list of patients.",
     parameters=types.Schema(
         type=types.Type.OBJECT,
-        properties={
-            "search": types.Schema(
-                type=types.Type.STRING,
-                description="Search term to filter patients (optional)"
-            ),
-        },
+        properties={},
         required=[]
     )
 )
