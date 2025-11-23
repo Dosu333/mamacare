@@ -17,6 +17,7 @@ from tools.observations import (
 )
 from tools.doctors.get_doctors import get_doctors
 from tools.dorra_ai.emr import create_appointments_and_encounters_via_ai
+from tools.reports.generate_report import generate_patient_report
 from google.genai import types
 
 
@@ -73,6 +74,10 @@ def call_function(function_call_part, verbose=True, user_id=None):
     # Doctors
     elif function_call_part.name == "get_doctors":
         result = get_doctors(**function_call_part.args)
+        
+    # Reports
+    elif function_call_part.name == "generate_patient_report":
+        result = generate_patient_report(**function_call_part.args)
 
     else:
         result = {"status": "failure", "message": "Function not found"}
