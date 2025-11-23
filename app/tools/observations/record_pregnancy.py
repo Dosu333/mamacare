@@ -31,6 +31,25 @@ def record_pregnancy(patient_id: int, status: str, notes: str = None):
     return {"status": "success", "observation_id": observation.id}
 
 
+def get_pregnancy_status(patient_id: int):
+    """
+    Retrieve the latest pregnancy status for a patient.
+    """
+    observation = Observation.query.filter_by(
+        patient_id=patient_id,
+        type="pregnancy_status"
+    ).order_by(Observation.recorded_at.desc()).first()
+
+    if not observation:
+        return {"status": "not found"}
+
+    return {
+        "status": "success",
+        "pregnancy_status": observation.value,
+        "recorded_at": observation.recorded_at.isoformat()
+    }
+
+
 schema_record_pregnancy = types.FunctionDeclaration(
     name="record_pregnancy",
     description="Record pregnancy status for a patient, optionally with notes.",
@@ -51,5 +70,20 @@ schema_record_pregnancy = types.FunctionDeclaration(
             ),
         },
         required=["patient_id", "status"]
+    )
+)
+
+schema_pregnancy_status = types.FunctionDeclaration(
+    name="get_pregnancy_status",
+    description="Retrieve the latest pregnancy status for a patient.",
+    parameters=types.Schema(
+        type=types.Type.OBJECT,
+        properties={
+            "patient_id": types.Schema(
+                type=types.Type.STRING,
+                description="Unique ID of the patient"
+            ),
+        },
+        required=["patient_id", ]
     )
 )
